@@ -5,3 +5,4 @@
 *.db
 .vscode/
 build/
+/gerenciamento_de_acesso
