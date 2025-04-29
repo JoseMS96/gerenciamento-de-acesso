@@ -5,5 +5,6 @@ int main() {
     if (database_init() != 0) return -1;
     menu_show();
     database_close();
+    database_delete_file();
     return 0;
 }

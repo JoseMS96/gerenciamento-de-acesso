@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <sqlite3.h>
 #include "menu.h"
+#include "ga_database.h"
 
 void menu_show() {
     int option;
@@ -17,9 +19,24 @@ void menu_show() {
         switch(option) {
             case 1:
                 printf("Cadastro de usuário...\n");
+                char nome[50], senha[50];
+                int admin;
+                printf("Nome: ");
+                scanf("%s", nome);
+                printf("Senha: ");
+                scanf("%s", senha);
+                printf("É administrador? (1=Sim, 0=Não): ");
+                scanf("%d", &admin);
+                int result = database_cadastrar_usuario(nome, senha, admin);
+                if (result == SQLITE_OK) {
+                    printf("Usuário cadastrado com sucesso!\n");
+                } else {
+                    printf("Erro ao cadastrar usuário! Código SQLite: %d\n", result);
+                }
                 break;
             case 2:
-                printf("Listagem de usuários...\n");
+                printf("Listando usuários...\n");
+                database_listar_usuarios();
                 break;
             case 3:
                 printf("Listagem de eventos...\n");

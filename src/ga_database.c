@@ -1,6 +1,7 @@
 #include <sqlite3.h>
 #include <stdio.h>
 #include "ga_database.h"
+#include <unistd.h>
 
 sqlite3 *db;
 
@@ -15,7 +16,7 @@ int database_init() {
                             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                             "nome TEXT NOT NULL,"
                             "senha TEXT NOT NULL,"
-                            "admin INTEGER NOT NULL);";
+                            "admin INTEGER NOT NULL CHECK (admin IN (0,1)));";
 
     const char *sql_events = "CREATE TABLE IF NOT EXISTS eventos ("
                              "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -32,6 +33,52 @@ int database_init() {
     return 0;
 }
 
+int database_cadastrar_usuario(const char *nome, const char *senha, int admin) {
+    char sql[512];
+    char *errmsg = 0;
+    sprintf(sql, "INSERT INTO usuarios (nome, senha, admin) VALUES ('%s', '%s', %d);", nome, senha, admin);
+    
+    int rc = sqlite3_exec(db, sql, 0, 0, &errmsg);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "SQLite erro: %s\n", errmsg);
+        sqlite3_free(errmsg);
+    }
+    return rc;
+}
+
+
+int database_listar_usuarios() {
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT nome FROM usuarios;";
+    sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+
+    int found = 0;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (!found) {
+            printf("\nUsuários Cadastrados:\n");
+            found = 1;
+        }
+        printf("- %s\n", sqlite3_column_text(stmt, 0));
+    }
+
+    if (!found) {
+        printf("Banco de dados vazio.\n");
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
+}
+
 void database_close() {
     sqlite3_close(db);
+}
+
+void database_delete_file() {
+    const char *filename = "acesso.db";
+    if (unlink(filename) == 0) {
+        printf("Banco de dados removido com sucesso.\n");
+    } else {
+        perror("Erro ao remover o banco de dados");
+    }
 }
