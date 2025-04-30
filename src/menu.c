@@ -20,7 +20,7 @@ void menu_show() {
         serial_ui_write("3 - Listar Eventos\r\n");
         serial_ui_write("4 - Liberar Porta 1\r\n");
         serial_ui_write("5 - Liberar Porta 2\r\n");
-        serial_ui_write("0 - Sair\r\n");
+        serial_ui_write("9 - Sair\r\n");
         serial_ui_write("Escolha uma opção: ");
         serial_ui_readline(line, sizeof(line));
         option = atoi(line);
@@ -116,7 +116,7 @@ void menu_show() {
                 break;
             }
 
-            case 0:
+            case 9:
                 serial_ui_write("Saindo...\r\n");
                 break;
 

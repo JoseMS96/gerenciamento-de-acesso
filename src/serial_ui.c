@@ -22,9 +22,15 @@ int serial_ui_init(const char *device, int baud) {
     tty.c_cflag |= (CLOCAL | CREAD);
     tty.c_cflag &= ~(PARENB | PARODD | CSTOPB | CRTSCTS);
 
-    tty.c_iflag = IGNPAR | ICRNL;  // Converte \r -> \n na entrada
-    tty.c_oflag = OPOST | ONLCR;   // Traduz \n -> \r\n na saída
-    tty.c_lflag = ECHO | ICANON;   // Modo canônico + eco
+    tty.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
+    tty.c_iflag |= IGNPAR;
+    
+    tty.c_oflag &= ~(OPOST | ONLCR | OCRNL);
+    
+    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+    
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 1;
 
     tcflush(ser_fd, TCIFLUSH);
     if (tcsetattr(ser_fd, TCSANOW, &tty) != 0) { close(ser_fd); return -1; }
@@ -45,9 +51,25 @@ int serial_ui_readline(char *buffer, int maxlen) {
     char c;
     while (idx < maxlen - 1) {
         if (read(ser_fd, &c, 1) <= 0) continue;
-        if (c == '\r' || c == '\n')  // Encerra a leitura ao receber '\r' ou '\n'
+        
+        // Verifica se é backspace (ASCII 8) ou delete (ASCII 127)
+        if (c == '\b' || c == 127) {
+            if (idx > 0) {
+                idx--; // Remove o último caractere do buffer
+                // Envia sequência para apagar visualmente na tela
+                write(ser_fd, "\b \b", 3);
+            }
+        }
+        
+        else if (c == '\r' || c == '\n') {
+            write(ser_fd, "\r\n", 2); 
             break;
-        buffer[idx++] = c;
+        }
+        
+        else {
+            buffer[idx++] = c;
+            write(ser_fd, &c, 1); 
+        }
     }
     buffer[idx] = '\0';
     return idx;
