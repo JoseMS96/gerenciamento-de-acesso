@@ -1,3 +1,4 @@
+#include "serial_ui.h"
 #include <sqlite3.h>
 #include <stdio.h>
 #include "ga_database.h"
@@ -53,17 +54,19 @@ int database_listar_usuarios() {
     sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
 
     int found = 0;
+    char buffer[256]; 
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         if (!found) {
-            printf("\nUsuários Cadastrados:\n");
+            serial_ui_write("\r\nUsuários Cadastrados:\r\n");
             found = 1;
         }
-        printf("- %s\n", sqlite3_column_text(stmt, 0));
+        snprintf(buffer, sizeof(buffer), "- %s\r\n", sqlite3_column_text(stmt, 0));
+        serial_ui_write(buffer);
     }
 
     if (!found) {
-        printf("Banco de dados vazio.\n");
+        serial_ui_write("Banco de dados vazio.\r\n");
     }
 
     sqlite3_finalize(stmt);
