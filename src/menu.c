@@ -124,5 +124,5 @@ void menu_show() {
                 serial_ui_write("Opção inválida!\r\n");
                 break;
         }
-    } while(option != 0);
+    } while(option != 9);
 }
